@@ -1,111 +1,149 @@
-import { blogPosts, blogCategories, blogTags, getRelatedPosts } from '../data/blogPosts';
-import { BlogPost, BlogCategory, BlogTag } from '../types/blog';
+import api from './api';
+import { BlogPost, BlogPostDTO, TagDTO } from '../types/blog';
 
-
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+// Helper to map API DTO to Frontend Model
+const mapPostToFrontend = (dto: BlogPostDTO): BlogPost => ({
+  id: dto.id,
+  title: dto.title,
+  slug: dto.slug,
+  excerpt: dto.excerpt || '',
+  content: dto.content,
+  coverImage: dto.featured_image || '/assets/images/blog/default.jpg',
+  publishDate: dto.publication_dt || new Date().toISOString(),
+  readTime: dto.reading_time || 5,
+  tags: dto.tags.map(t => t.name),
+  categories: [], // API doesn't support categories distinct from tags yet
+  author: {
+    name: 'Joe Scully', // Hardcoded as API doesn't return author yet
+    avatar: '/assets/images/profile-placeholder.jpg'
+  },
+  likes: 0,
+  featured: false
+});
 
 export const BlogAPI = {
   
   async getPosts(category?: string, tag?: string, search?: string): Promise<BlogPost[]> {
-    let filteredPosts = [...blogPosts];
+    // Note: 'category' is ignored as API uses tags. 
+    // We map 'tag' (name) to 'tags' (UUID) if possible, but the API 
+    // endpoint /api/blogs takes 'tags' as UUIDs.
+    // This is a mismatch. For now, let's fetch all and filter client side 
+    // OR we need to lookup tag ID by name.
     
-    if (category) {
-      filteredPosts = filteredPosts.filter(post => 
-        post.categories.some(cat => cat.toLowerCase() === category.toLowerCase())
-      );
-    }
-    
-    if (tag) {
-      filteredPosts = filteredPosts.filter(post => 
-        post.tags.some(t => t.toLowerCase() === tag.toLowerCase())
-      );
-    }
+    // For search, we can use the search_term param
+    const params: any = {
+      page: 1,
+      page_size: 50,
+    };
 
     if (search) {
-      const query = search.toLowerCase();
-      filteredPosts = filteredPosts.filter(post => 
-        post.title.toLowerCase().includes(query) || 
-        post.excerpt.toLowerCase().includes(query) ||
-        post.content.toLowerCase().includes(query)
-      );
+      params.search_term = search;
     }
-    
-    return filteredPosts;
+
+    try {
+      const response = await api.get('/blogs', { params });
+      const items: BlogPostDTO[] = response.data.items;
+      
+      let posts = items.map(mapPostToFrontend);
+
+      // Client-side filtering for tags if we can't resolve UUID easily yet
+      if (tag) {
+        posts = posts.filter(p => p.tags.includes(tag));
+      }
+
+      return posts;
+    } catch (error) {
+      console.error("Failed to fetch posts", error);
+      return [];
+    }
   },
-  
   
   async getPost(slug: string): Promise<BlogPost | null> {
-    const post = blogPosts.find(p => p.slug === slug);
-    return post || null;
+    try {
+      const response = await api.get(`/blogs/${slug}`);
+      return mapPostToFrontend(response.data);
+    } catch (error) {
+      console.error(`Failed to fetch post ${slug}`, error);
+      return null;
+    }
   },
   
-  async getCategories(): Promise<BlogCategory[]> {
-    return blogCategories;
+  async getCategories(): Promise<any[]> {
+    // API doesn't have categories, only tags. Return empty or mock.
+    return [];
   },
   
-  async getTags(): Promise<BlogTag[]> {
-    return blogTags;
+  async getTags(): Promise<TagDTO[]> {
+    try {
+      const response = await api.get('/tags');
+      return response.data;
+    } catch (error) {
+      return [];
+    }
   },
   
+  // Admin functions
+  async savePost(postData: any): Promise<BlogPost | null> {
+    // 1. Resolve Tags
+    const tagNames: string[] = typeof postData.tags === 'string' 
+      ? postData.tags.split(',').map((t: string) => t.trim()).filter(Boolean)
+      : postData.tags;
+
+    let tagIds: string[] = [];
+    
+    if (tagNames && tagNames.length > 0) {
+      try {
+        const existingTagsRes = await api.get('/tags');
+        const existingTags: TagDTO[] = existingTagsRes.data;
+        
+        for (const name of tagNames) {
+          const found = existingTags.find(t => t.name.toLowerCase() === name.toLowerCase());
+          if (found) {
+            tagIds.push(found.id);
+          } else {
+            // Create new tag
+            const createRes = await api.post('/admin/tags/', { name, color_code: '#333333' });
+            tagIds.push(createRes.data.id);
+          }
+        }
+      } catch (err) {
+        console.error("Error resolving tags", err);
+      }
+    }
+
+    const payload = {
+      title: postData.title,
+      slug: postData.slug,
+      content: postData.content,
+      excerpt: postData.excerpt,
+      featured_image: postData.coverImage || postData.featured_image,
+      tag_ids: tagIds,
+      status: postData.status || 'draft'
+    };
+
+    try {
+      if (postData.id) {
+        // Update
+        const response = await api.put(`/admin/blogs/${postData.id}`, payload);
+        return mapPostToFrontend(response.data);
+      } else {
+        // Create
+        const response = await api.post('/admin/blogs/', payload);
+        return mapPostToFrontend(response.data);
+      }
+    } catch (error) {
+      console.error("Failed to save post", error);
+      throw error;
+    }
+  },
+
   async likePost(postId: string): Promise<{ success: boolean, likes: number }> {
-    const post = blogPosts.find(p => p.id === postId);
-    
-    if (!post) return { success: false, likes: 0 };
-    
-    post.likes += 1;
-    return { success: true, likes: post.likes };
+    // Not supported by API yet
+    return { success: true, likes: 0 };
   },
   
   async getRelatedPosts(postId: string, limit: number = 3): Promise<BlogPost[]> {
-    const post = blogPosts.find(p => p.id === postId);
-    
-    if (!post) return [];
-    
-    return getRelatedPosts(post, limit);
-  },
-
-  async savePost(postData: Partial<BlogPost> & { categories?: string | string[], tags?: string | string[] }): Promise<BlogPost> {
-    await delay(1000); // Simulate network delay
-
-    // Process categories and tags if they are strings
-    const categories = Array.isArray(postData.categories) 
-      ? postData.categories 
-      : (typeof postData.categories === 'string' ? postData.categories : '').split(',').map(c => c.trim()).filter(Boolean);
-
-    const tags = Array.isArray(postData.tags) 
-      ? postData.tags 
-      : (typeof postData.tags === 'string' ? postData.tags : '').split(',').map(t => t.trim()).filter(Boolean);
-
-    const existingPostIndex = blogPosts.findIndex(p => p.slug === postData.slug || p.id === postData.id);
-
-    const newPost: BlogPost = {
-      id: postData.id || Date.now().toString(),
-      title: postData.title || 'Untitled',
-      slug: postData.slug || `untitled-${Date.now()}`,
-      excerpt: postData.excerpt || '',
-      content: postData.content || '',
-      coverImage: postData.coverImage || '/assets/images/blog/default.jpg',
-      publishDate: postData.publishDate || new Date().toISOString(),
-      author: {
-        name: 'Joe Scully',
-        avatar: '/assets/images/profile-placeholder.jpg',
-        ...postData.author
-      },
-      categories,
-      tags,
-      readTime: postData.readTime || 5,
-      likes: postData.likes || 0,
-      featured: postData.featured || false,
-    };
-
-    if (existingPostIndex >= 0) {
-      // Update existing
-      blogPosts[existingPostIndex] = { ...blogPosts[existingPostIndex], ...newPost };
-      return blogPosts[existingPostIndex];
-    } else {
-      // Create new
-      blogPosts.push(newPost);
-      return newPost;
-    }
+    // Mock implementation for now, or fetch all and filter
+    return [];
   }
 };

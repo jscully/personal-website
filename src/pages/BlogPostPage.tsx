@@ -4,8 +4,6 @@ import styled from 'styled-components';
 import BlogDetail from '../components/BlogDetail';
 import SEO from '../components/common/SEO';
 import { useBlogPost } from '../hooks/useBlogs';
-import { getRelatedPosts } from '../data/blogPosts'; // Keeping this helper for now, or move to hook if API supports it
-
 
 const BlogPostPageContainer = styled.div`
   padding: 2rem 0;
@@ -28,9 +26,8 @@ const BlogPostPage: React.FC = () => {
   
   const { data: post, isLoading, isError } = useBlogPost(slug || '');
   
-  // Get related posts if the current post exists
-  // Note: In a real app, this should probably be part of the API response or a separate hook call
-  const relatedPosts = post ? getRelatedPosts(post, 3) : [];
+  // TODO: Implement related posts fetching from API
+  const relatedPosts: any[] = [];
   
   // Redirect to the blog page if the post doesn't exist
   useEffect(() => {

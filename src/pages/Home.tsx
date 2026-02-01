@@ -6,10 +6,10 @@ import About from '../components/About';
 import Projects from '../components/Projects';
 import Contact from '../components/Contact';
 import BlogList from '../components/BlogList';
-import { blogPosts } from '../data/blogPosts';
 import PageContainer from '../components/common/PageContainer';
 import Button from '../components/common/Button';
 import SEO from '../components/common/SEO';
+import { useBlogs } from '../hooks/useBlogs';
 
 const FeaturedSection = styled.section`
   padding: 5rem 0;
@@ -46,7 +46,9 @@ const SectionTitle = styled.h2`
 `;
 
 const Home: React.FC = () => {
-  const featuredPosts = blogPosts.filter(post => post.featured).slice(0, 3);
+  const { data: posts } = useBlogs();
+  // Filter for featured posts if the API supported it, or just take the first 3 recent ones
+  const featuredPosts = posts ? posts.slice(0, 3) : [];
 
   return (
     <>

@@ -43,8 +43,7 @@ const TagManagementPage: React.FC = () => {
         {tags?.map((tag) => (
           <TagCard key={tag.id}>
             <TagChip label={tag.name} clickable={false} />
-            <div style={{ color: '#666', fontSize: '0.875rem' }}>{tag.count} Posts</div>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
               <Button variant="outline" size="small">Edit</Button>
               <Button variant="outline" size="small" style={{ color: 'red', borderColor: 'red' }}>Delete</Button>
             </div>

@@ -1,9 +1,8 @@
-import React, { useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
-import { getPostsByTag, blogTags } from '../data/blogPosts';
 import BlogList from '../components/BlogList';
-
+import { useBlogs } from '../hooks/useBlogs';
 
 const TagPageContainer = styled.div`
   padding: 4rem 0;
@@ -35,32 +34,22 @@ const ContentContainer = styled.div`
 
 const TagPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
-  const navigate = useNavigate();
   
-  const tag = slug ? blogTags.find(t => t.slug === slug) : undefined;
-  const posts = slug ? getPostsByTag(slug) : [];
+  const { data: posts, isLoading } = useBlogs(undefined, slug);
   
-  useEffect(() => {
-    if ((!tag || posts.length === 0) && slug) {
-      navigate('/blog', { replace: true });
-    }
-  }, [tag, posts, slug, navigate]);
-
-  if (!tag) {
-    return null;
-  }
+  if (isLoading) return <div>Loading...</div>;
   
   return (
     <TagPageContainer>
       <PageHeader>
-        <PageTitle>#{tag.name}</PageTitle>
+        <PageTitle>#{slug}</PageTitle>
         <PageDescription>
-          {posts.length} article{posts.length !== 1 ? 's' : ''} tagged with "{tag.name}"
+          Articles tagged with "{slug}"
         </PageDescription>
       </PageHeader>
       
       <ContentContainer>
-        <BlogList posts={posts} />
+        <BlogList posts={posts || []} />
       </ContentContainer>
     </TagPageContainer>
   );

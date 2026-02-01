@@ -1,9 +1,8 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { getPostsByCategory, blogCategories } from '../data/blogPosts';
 import BlogList from '../components/BlogList';
-
+import { useBlogs } from '../hooks/useBlogs';
 
 const CategoryPageContainer = styled.div`
   padding: 4rem 0;
@@ -35,37 +34,22 @@ const ContentContainer = styled.div`
 
 const CategoryPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
-  const navigate = useNavigate();
+  // We treat categories as tags for now since API unifies them
+  const { data: posts, isLoading } = useBlogs(undefined, slug); 
   
-  // Find the category by slug
-  const category = slug ? blogCategories.find(c => c.slug === slug) : undefined;
-  
-  // Get posts in this category
-  const posts = slug ? getPostsByCategory(slug) : [];
-  
-  // Redirect to the blog page if the category doesn't exist or has no posts
-  useEffect(() => {
-    if ((!category || posts.length === 0) && slug) {
-      navigate('/blog', { replace: true });
-    }
-  }, [category, posts, slug, navigate]);
-  
-  // Show nothing while checking the category
-  if (!category) {
-    return null;
-  }
+  if (isLoading) return <div>Loading...</div>;
   
   return (
     <CategoryPageContainer>
       <PageHeader>
-        <PageTitle>{category.name}</PageTitle>
+        <PageTitle>{slug}</PageTitle>
         <PageDescription>
-          {category.description || `${posts.length} article${posts.length !== 1 ? 's' : ''} in "${category.name}"`}
+          Articles in "{slug}"
         </PageDescription>
       </PageHeader>
       
       <ContentContainer>
-        <BlogList posts={posts} />
+        <BlogList posts={posts || []} />
       </ContentContainer>
     </CategoryPageContainer>
   );
