@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
+import { BlogAPI } from '../../services/BlogAPI';
 import { useBlogPost } from '../../hooks/useBlogs';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
@@ -62,7 +63,7 @@ const BlogEditorPage: React.FC = () => {
   const handleSubmit = async (values: any, { setSubmitting }: any) => {
     try {
       console.log('Saving post:', values);
-      // await BlogAPI.savePost(values);
+      await BlogAPI.savePost(values);
       alert('Post saved successfully!');
       navigate('/admin/blogs');
     } catch (err) {

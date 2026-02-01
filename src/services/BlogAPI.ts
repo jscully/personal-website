@@ -62,5 +62,50 @@ export const BlogAPI = {
     if (!post) return [];
     
     return getRelatedPosts(post, limit);
+  },
+
+  async savePost(postData: Partial<BlogPost> & { categories?: string | string[], tags?: string | string[] }): Promise<BlogPost> {
+    await delay(1000); // Simulate network delay
+
+    // Process categories and tags if they are strings
+    const categories = Array.isArray(postData.categories) 
+      ? postData.categories 
+      : (typeof postData.categories === 'string' ? postData.categories : '').split(',').map(c => c.trim()).filter(Boolean);
+
+    const tags = Array.isArray(postData.tags) 
+      ? postData.tags 
+      : (typeof postData.tags === 'string' ? postData.tags : '').split(',').map(t => t.trim()).filter(Boolean);
+
+    const existingPostIndex = blogPosts.findIndex(p => p.slug === postData.slug || p.id === postData.id);
+
+    const newPost: BlogPost = {
+      id: postData.id || Date.now().toString(),
+      title: postData.title || 'Untitled',
+      slug: postData.slug || `untitled-${Date.now()}`,
+      excerpt: postData.excerpt || '',
+      content: postData.content || '',
+      coverImage: postData.coverImage || '/assets/images/blog/default.jpg',
+      publishDate: postData.publishDate || new Date().toISOString(),
+      author: {
+        name: 'Joe Scully',
+        avatar: '/assets/images/profile-placeholder.jpg',
+        ...postData.author
+      },
+      categories,
+      tags,
+      readTime: postData.readTime || 5,
+      likes: postData.likes || 0,
+      featured: postData.featured || false,
+    };
+
+    if (existingPostIndex >= 0) {
+      // Update existing
+      blogPosts[existingPostIndex] = { ...blogPosts[existingPostIndex], ...newPost };
+      return blogPosts[existingPostIndex];
+    } else {
+      // Create new
+      blogPosts.push(newPost);
+      return newPost;
+    }
   }
 };
