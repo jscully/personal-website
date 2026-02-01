@@ -18,7 +18,8 @@ const mapPostToFrontend = (dto: BlogPostDTO): BlogPost => ({
     avatar: '/assets/images/profile-placeholder.jpg'
   },
   likes: 0,
-  featured: false
+  featured: false,
+  status: dto.status
 });
 
 export const BlogAPI = {
@@ -54,6 +55,22 @@ export const BlogAPI = {
       return posts;
     } catch (error) {
       console.error("Failed to fetch posts", error);
+      return [];
+    }
+  },
+
+  async getAdminPosts(): Promise<BlogPost[]> {
+    const params = {
+      page: 1,
+      page_size: 100, // Fetch more for admin list
+    };
+
+    try {
+      const response = await api.get('/admin/blogs/', { params });
+      const items: BlogPostDTO[] = response.data.items;
+      return items.map(mapPostToFrontend);
+    } catch (error) {
+      console.error("Failed to fetch admin posts", error);
       return [];
     }
   },

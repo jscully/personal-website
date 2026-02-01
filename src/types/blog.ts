@@ -39,6 +39,7 @@ export interface BlogPost {
   readTime: number;
   likes: number; // Not in API
   featured: boolean; // Not in API
+  status: string;
 }
 
 export interface BlogCategory {

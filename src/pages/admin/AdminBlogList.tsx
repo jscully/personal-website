@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
-import { useBlogs } from '../../hooks/useBlogs';
+import { useAdminBlogs } from '../../hooks/useBlogs';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import LoadingIndicator from '../../components/common/LoadingIndicator';
@@ -35,13 +35,14 @@ const Td = styled.td`
   border-bottom: 1px solid #e5e7eb;
 `;
 
-const StatusBadge = styled.span<{ published: boolean }>`
+const StatusBadge = styled.span<{ status: string }>`
   padding: 0.25rem 0.5rem;
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 500;
-  background-color: ${({ published }) => (published ? '#d1fae5' : '#fef3c7')};
-  color: ${({ published }) => (published ? '#065f46' : '#92400e')};
+  background-color: ${({ status }) => (status === 'published' ? '#d1fae5' : '#fef3c7')};
+  color: ${({ status }) => (status === 'published' ? '#065f46' : '#92400e')};
+  text-transform: capitalize;
 `;
 
 const ActionButtons = styled.div`
@@ -50,7 +51,7 @@ const ActionButtons = styled.div`
 `;
 
 const AdminBlogList: React.FC = () => {
-  const { data: posts, isLoading, error } = useBlogs();
+  const { data: posts, isLoading, error } = useAdminBlogs();
 
   if (isLoading) return <LoadingIndicator />;
   if (error) return <div>Error loading posts.</div>;
@@ -78,9 +79,9 @@ const AdminBlogList: React.FC = () => {
             <tr key={post.id}>
               <Td>{post.title}</Td>
               <Td>
-                <StatusBadge published={true}>Published</StatusBadge>
+                <StatusBadge status={post.status}>{post.status}</StatusBadge>
               </Td>
-              <Td>{post.publishDate}</Td>
+              <Td>{new Date(post.publishDate).toLocaleDateString()}</Td>
               <Td>
                 <ActionButtons>
                   <Link to={`/admin/blogs/edit/${post.slug}`}>

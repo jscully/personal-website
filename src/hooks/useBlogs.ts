@@ -9,6 +9,13 @@ export const useBlogs = (category?: string, tag?: string, search?: string) => {
   });
 };
 
+export const useAdminBlogs = () => {
+  return useQuery({
+    queryKey: ['admin-blogs'],
+    queryFn: () => BlogAPI.getAdminPosts(),
+  });
+};
+
 export const useBlogPost = (slug: string) => {
   return useQuery({
     queryKey: ['blog', slug],
