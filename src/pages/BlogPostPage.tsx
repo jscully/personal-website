@@ -2,7 +2,8 @@ import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import BlogDetail from '../components/BlogDetail';
-import { getBlogPostBySlug, getRelatedPosts } from '../data/blogPosts';
+import { useBlogPost } from '../hooks/useBlogs';
+import { getRelatedPosts } from '../data/blogPosts'; // Keeping this helper for now, or move to hook if API supports it
 
 
 const BlogPostPageContainer = styled.div`
@@ -15,26 +16,34 @@ const ContentContainer = styled.div`
   padding: 0 2rem;
 `;
 
+const LoadingMessage = styled.div`
+  text-align: center;
+  padding: 2rem;
+`;
+
 const BlogPostPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   
-  // Find the blog post by slug
-  const post = slug ? getBlogPostBySlug(slug) : undefined;
+  const { data: post, isLoading, isError } = useBlogPost(slug || '');
   
   // Get related posts if the current post exists
+  // Note: In a real app, this should probably be part of the API response or a separate hook call
   const relatedPosts = post ? getRelatedPosts(post, 3) : [];
   
   // Redirect to the blog page if the post doesn't exist
   useEffect(() => {
-    if (!post && slug) {
+    if (!isLoading && !post && slug) {
       navigate('/blog', { replace: true });
     }
-  }, [post, slug, navigate]);
+  }, [post, slug, navigate, isLoading]);
   
-  // Show nothing while checking the post
-  if (!post) {
-    return null;
+  if (isLoading) {
+    return <LoadingMessage>Loading...</LoadingMessage>;
+  }
+
+  if (isError || !post) {
+     return null; 
   }
   
   return (

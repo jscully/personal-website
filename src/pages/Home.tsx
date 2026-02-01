@@ -1,11 +1,52 @@
 import React from 'react';
+import styled from 'styled-components';
+import { Link } from 'react-router-dom';
 import Hero from '../components/Hero';
 import About from '../components/About';
 import Projects from '../components/Projects';
 import Contact from '../components/Contact';
 import BlogList from '../components/BlogList';
+import { blogPosts } from '../data/blogPosts';
+import PageContainer from '../components/common/PageContainer';
+import Button from '../components/common/Button';
+
+const FeaturedSection = styled.section`
+  padding: 5rem 0;
+  background-color: ${({ theme }) => theme.colors.background};
+`;
+
+const SectionHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 3rem;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+`;
+
+const SectionTitle = styled.h2`
+  font-size: 2.5rem;
+  margin-bottom: 0;
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -10px;
+    width: 60px;
+    height: 3px;
+    background-color: ${({ theme }) => theme.colors.primary};
+  }
+`;
 
 const Home: React.FC = () => {
+  const featuredPosts = blogPosts.filter(post => post.featured).slice(0, 3);
+
   return (
     <>
       <Hero 
@@ -14,6 +55,17 @@ const Home: React.FC = () => {
         description="I build things, write things, test things"
       />
       <About />
+      <FeaturedSection>
+        <PageContainer>
+          <SectionHeader>
+            <SectionTitle>Featured Posts</SectionTitle>
+            <Link to="/blog">
+              <Button variant="outline">View All Posts</Button>
+            </Link>
+          </SectionHeader>
+          <BlogList posts={featuredPosts} />
+        </PageContainer>
+      </FeaturedSection>
       <Projects />
       <Contact />
     </>

@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
-import { blogPosts, blogCategories } from '../data/blogPosts';
 import BlogList from '../components/BlogList';
-import { BlogAPI } from '../services/BlogAPI';
-import { BlogPost } from '../types/blog';
+import Pagination from '../components/common/Pagination';
+import { useBlogs, useCategories } from '../hooks/useBlogs';
 
 const BlogPageContainer = styled.div`
   padding: 4rem 0;
@@ -46,33 +45,26 @@ const ErrorMessage = styled.div`
 `;
 
 const BlogPage: React.FC = () => {
-  const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  
-  useEffect(() => {
-    const fetchBlogData = async () => {
-      try {
-        const postsData = await BlogAPI.getPosts();
-        setPosts(postsData);
-        
-        const uniqueCategories = Array.from(
-          new Set(postsData.flatMap(post => post.categories))
-        );
+  const [currentPage, setCurrentPage] = useState(1);
+  const postsPerPage = 6;
 
-        setCategories(uniqueCategories);
-        
-      } catch (err) {
-        console.error('Error fetching blog posts:', err);
-        setError('Failed to load blog posts. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchBlogData();
-  }, []);
+  const { data: posts, isLoading: postsLoading, error: postsError } = useBlogs();
+  const { data: categories } = useCategories();
+  
+  const loading = postsLoading;
+  const error = postsError ? 'Failed to load blog posts. Please try again later.' : null;
+
+  // Pagination Logic
+  const postList = posts || [];
+  const totalPages = Math.ceil(postList.length / postsPerPage);
+  const indexOfLastPost = currentPage * postsPerPage;
+  const indexOfFirstPost = indexOfLastPost - postsPerPage;
+  const currentPosts = postList.slice(indexOfFirstPost, indexOfLastPost);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
   
   return (
     <BlogPageContainer>
@@ -87,7 +79,14 @@ const BlogPage: React.FC = () => {
         {loading ? (
           <LoadingMessage>Loading blog posts...</LoadingMessage>) : error ? (
           <ErrorMessage>{error}</ErrorMessage>) : (
-          <BlogList posts={posts} categories={categories} />
+          <>
+            <BlogList posts={currentPosts} categories={categories?.map(c => c.name)} />
+            <Pagination 
+              currentPage={currentPage} 
+              totalPages={totalPages} 
+              onPageChange={handlePageChange} 
+            />
+          </>
         )}
       </ContentContainer>
     </BlogPageContainer>
