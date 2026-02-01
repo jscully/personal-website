@@ -35,7 +35,7 @@ export const BlogAPI = {
     }
 
     try {
-      const response = await api.get('/blogs', { params });
+      const response = await api.get('blogs/', { params });
       const items: BlogPostDTO[] = response.data.items;
       
       // Filter only published ones (those with status 'published' or having a publication date)
@@ -62,7 +62,7 @@ export const BlogAPI = {
     };
 
     try {
-      const response = await api.get('/admin/blogs/', { params });
+      const response = await api.get('admin/blogs/', { params });
       const items: BlogPostDTO[] = response.data.items;
       return items.map(mapPostToFrontend);
     } catch (error) {
@@ -73,7 +73,7 @@ export const BlogAPI = {
 
   async deletePost(blogId: string): Promise<boolean> {
     try {
-      await api.delete(`/admin/blogs/${blogId}/`);
+      await api.delete(`admin/blogs/${blogId}/`);
       return true;
     } catch (error) {
       console.error("Failed to delete post", error);
@@ -83,7 +83,7 @@ export const BlogAPI = {
   
   async getPost(slug: string): Promise<BlogPost | null> {
     try {
-      const response = await api.get(`/blogs/${slug}/`);
+      const response = await api.get(`blogs/${slug}/`);
       return mapPostToFrontend(response.data);
     } catch (error) {
       console.error(`Failed to fetch post ${slug}`, error);
@@ -98,7 +98,7 @@ export const BlogAPI = {
   
   async getTags(): Promise<TagDTO[]> {
     try {
-      const response = await api.get('/tags');
+      const response = await api.get('tags/');
       return response.data;
     } catch (error) {
       return [];
@@ -116,7 +116,7 @@ export const BlogAPI = {
     
     if (tagNames && tagNames.length > 0) {
       try {
-        const existingTagsRes = await api.get('/tags');
+        const existingTagsRes = await api.get('tags/');
         const existingTags: TagDTO[] = existingTagsRes.data;
         
         for (const name of tagNames) {
@@ -125,7 +125,7 @@ export const BlogAPI = {
             tagIds.push(found.id);
           } else {
             // Create new tag
-            const createRes = await api.post('/admin/tags/', { name, color_code: '#333333' });
+            const createRes = await api.post('admin/tags/', { name, color_code: '#333333' });
             tagIds.push(createRes.data.id);
           }
         }
@@ -149,11 +149,11 @@ export const BlogAPI = {
     try {
       if (postData.id) {
         // Update
-        const response = await api.put(`/admin/blogs/${postData.id}/`, payload);
+        const response = await api.put(`admin/blogs/${postData.id}/`, payload);
         return mapPostToFrontend(response.data);
       } else {
         // Create
-        const response = await api.post('/admin/blogs/', payload);
+        const response = await api.post('admin/blogs/', payload);
         return mapPostToFrontend(response.data);
       }
     } catch (error) {

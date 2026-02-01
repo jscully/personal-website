@@ -6,7 +6,7 @@ export const authService = {
     formData.append('username', credentials.email); // API expects 'username' but UI sends 'email'
     formData.append('password', credentials.password);
 
-    const response = await api.post('/admin/auth/login', formData, {
+    const response = await api.post('admin/auth/login', formData, {
       headers: {
         'Content-Type': 'multipart/form-data', // Axios handles boundary
       },
@@ -20,7 +20,7 @@ export const authService = {
 
   async logout() {
     try {
-      await api.post('/admin/auth/logout');
+      await api.post('admin/auth/logout/');
     } catch (err) {
       console.error('Logout failed', err);
     }
