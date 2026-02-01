@@ -62,7 +62,7 @@ export const BlogAPI = {
   async getAdminPosts(): Promise<BlogPost[]> {
     const params = {
       page: 1,
-      page_size: 100, // Fetch more for admin list
+      page_size: 50, // Max allowed by backend is 50
     };
 
     try {
