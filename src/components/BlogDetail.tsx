@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { BlogPost } from '../types/blog';
 import ReactMarkdown from 'react-markdown';
@@ -350,7 +350,6 @@ interface BlogDetailProps {
 const BlogDetail: React.FC<BlogDetailProps> = ({ post, relatedPosts = [] }) => {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(post.likes);
-  const navigate = useNavigate();
   
   const handleLike = () => {
     if (!liked) {
