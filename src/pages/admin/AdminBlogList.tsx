@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { useAdminBlogs } from '../../hooks/useBlogs';
+import { BlogAPI } from '../../services/BlogAPI';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import LoadingIndicator from '../../components/common/LoadingIndicator';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 
 const Header = styled.div`
   display: flex;
@@ -51,7 +53,23 @@ const ActionButtons = styled.div`
 `;
 
 const AdminBlogList: React.FC = () => {
-  const { data: posts, isLoading, error } = useAdminBlogs();
+  const { data: posts, isLoading, error, refetch } = useAdminBlogs();
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    setIsDeleting(true);
+    try {
+      await BlogAPI.deletePost(deleteId);
+      refetch();
+      setDeleteId(null);
+    } catch (err) {
+      alert('Failed to delete post');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   if (isLoading) return <LoadingIndicator />;
   if (error) return <div>Error loading posts.</div>;
@@ -81,13 +99,18 @@ const AdminBlogList: React.FC = () => {
               <Td>
                 <StatusBadge status={post.status}>{post.status}</StatusBadge>
               </Td>
-              <Td>{new Date(post.publishDate).toLocaleDateString()}</Td>
+              <Td>{post.publishDate ? new Date(post.publishDate).toLocaleDateString() : 'N/A'}</Td>
               <Td>
                 <ActionButtons>
                   <Link to={`/admin/blogs/edit/${post.slug}`}>
                     <Button variant="outline" size="small">Edit</Button>
                   </Link>
-                  <Button variant="outline" size="small" style={{ color: 'red', borderColor: 'red' }}>
+                  <Button 
+                    variant="outline" 
+                    size="small" 
+                    style={{ color: 'red', borderColor: 'red' }}
+                    onClick={() => setDeleteId(post.id)}
+                  >
                     Delete
                   </Button>
                 </ActionButtons>
@@ -96,6 +119,15 @@ const AdminBlogList: React.FC = () => {
           ))}
         </tbody>
       </Table>
+
+      <ConfirmDialog
+        isOpen={!!deleteId}
+        title="Delete Post"
+        message="Are you sure you want to delete this blog post? This action cannot be undone."
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteId(null)}
+        isLoading={isDeleting}
+      />
     </div>
   );
 };

@@ -9,7 +9,7 @@ const mapPostToFrontend = (dto: BlogPostDTO): BlogPost => ({
   excerpt: dto.excerpt || '',
   content: dto.content,
   coverImage: dto.featured_image || '/assets/images/blog/default.jpg',
-  publishDate: dto.publication_dt || new Date().toISOString(),
+  publishDate: dto.publication_dt || '',
   readTime: dto.reading_time || 5,
   tags: dto.tags.map(t => t.name),
   categories: [], // API doesn't support categories distinct from tags yet
@@ -19,19 +19,12 @@ const mapPostToFrontend = (dto: BlogPostDTO): BlogPost => ({
   },
   likes: 0,
   featured: false,
-  status: dto.status
+  status: dto.status || (dto.publication_dt ? 'published' : 'draft')
 });
 
 export const BlogAPI = {
   
   async getPosts(category?: string, tag?: string, search?: string): Promise<BlogPost[]> {
-    // Note: 'category' is ignored as API uses tags. 
-    // We map 'tag' (name) to 'tags' (UUID) if possible, but the API 
-    // endpoint /api/blogs takes 'tags' as UUIDs.
-    // This is a mismatch. For now, let's fetch all and filter client side 
-    // OR we need to lookup tag ID by name.
-    
-    // For search, we can use the search_term param
     const params: any = {
       page: 1,
       page_size: 50,
@@ -45,7 +38,10 @@ export const BlogAPI = {
       const response = await api.get('/blogs', { params });
       const items: BlogPostDTO[] = response.data.items;
       
-      let posts = items.map(mapPostToFrontend);
+      // Filter only published ones (those with status 'published' or having a publication date)
+      let posts = items
+        .map(mapPostToFrontend)
+        .filter(p => p.status === 'published' || p.publishDate !== '');
 
       // Client-side filtering for tags if we can't resolve UUID easily yet
       if (tag) {
@@ -62,7 +58,7 @@ export const BlogAPI = {
   async getAdminPosts(): Promise<BlogPost[]> {
     const params = {
       page: 1,
-      page_size: 50, // Max allowed by backend is 50
+      page_size: 50,
     };
 
     try {
@@ -72,6 +68,16 @@ export const BlogAPI = {
     } catch (error) {
       console.error("Failed to fetch admin posts", error);
       return [];
+    }
+  },
+
+  async deletePost(blogId: string): Promise<boolean> {
+    try {
+      await api.delete(`/admin/blogs/${blogId}`);
+      return true;
+    } catch (error) {
+      console.error("Failed to delete post", error);
+      return false;
     }
   },
   
