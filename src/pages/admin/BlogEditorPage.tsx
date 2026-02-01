@@ -49,6 +49,7 @@ const BlogEditorPage: React.FC = () => {
     categories: post?.categories?.join(', ') || '',
     tags: post?.tags?.join(', ') || '',
     status: 'draft',
+    reading_time: post?.readTime || 5,
   };
 
   const validationSchema = Yup.object({
@@ -56,6 +57,7 @@ const BlogEditorPage: React.FC = () => {
     slug: Yup.string().required('Required'),
     excerpt: Yup.string().required('Required'),
     content: Yup.string().required('Required'),
+    reading_time: Yup.number().integer().min(1).required('Required'),
   });
 
   if (isEditing && isLoading) return <LoadingIndicator />;
@@ -63,7 +65,11 @@ const BlogEditorPage: React.FC = () => {
   const handleSubmit = async (values: any, { setSubmitting }: any) => {
     try {
       console.log('Saving post:', values);
-      await BlogAPI.savePost(values);
+      // For new posts, ensure a unique slug if the user didn't change the default
+      if (!isEditing && values.slug === post?.slug) {
+         values.slug = `${values.slug}-${Date.now()}`;
+      }
+      await BlogAPI.savePost({ ...values, id: post?.id });
       alert('Post saved successfully!');
       navigate('/admin/blogs');
     } catch (err) {
@@ -136,6 +142,11 @@ const BlogEditorPage: React.FC = () => {
                 <Card>
                   <h3>Metadata</h3>
                   <hr style={{ margin: '1rem 0' }} />
+                  <InputGroup>
+                    <Label htmlFor="reading_time">Reading Time (minutes)</Label>
+                    <Field name="reading_time" type="number" as={Input} />
+                    <ErrorMessage name="reading_time" component={ErrorText} />
+                  </InputGroup>
                   <InputGroup>
                     <Label htmlFor="categories">Categories (comma separated)</Label>
                     <Field name="categories" as={Input} />

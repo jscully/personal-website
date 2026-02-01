@@ -73,7 +73,7 @@ export const BlogAPI = {
 
   async deletePost(blogId: string): Promise<boolean> {
     try {
-      await api.delete(`/admin/blogs/${blogId}`);
+      await api.delete(`/admin/blogs/${blogId}/`);
       return true;
     } catch (error) {
       console.error("Failed to delete post", error);
@@ -83,7 +83,7 @@ export const BlogAPI = {
   
   async getPost(slug: string): Promise<BlogPost | null> {
     try {
-      const response = await api.get(`/blogs/${slug}`);
+      const response = await api.get(`/blogs/${slug}/`);
       return mapPostToFrontend(response.data);
     } catch (error) {
       console.error(`Failed to fetch post ${slug}`, error);
@@ -138,16 +138,18 @@ export const BlogAPI = {
       title: postData.title,
       slug: postData.slug,
       content: postData.content,
-      excerpt: postData.excerpt,
-      featured_image: postData.coverImage || postData.featured_image,
-      tag_ids: tagIds,
-      status: postData.status || 'draft'
+      excerpt: postData.excerpt || null,
+      featured_image: postData.coverImage || postData.featured_image || null,
+      tag_ids: tagIds || [],
+      status: postData.status || 'draft',
+      reading_time: postData.readTime || null,
+      seo_description: postData.seo_description || null
     };
 
     try {
       if (postData.id) {
         // Update
-        const response = await api.put(`/admin/blogs/${postData.id}`, payload);
+        const response = await api.put(`/admin/blogs/${postData.id}/`, payload);
         return mapPostToFrontend(response.data);
       } else {
         // Create
