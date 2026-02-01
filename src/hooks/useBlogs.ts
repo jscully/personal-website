@@ -2,10 +2,10 @@ import { useQuery } from '@tanstack/react-query';
 import { BlogAPI } from '../services/BlogAPI';
 import { BlogPost, BlogCategory, BlogTag } from '../types/blog';
 
-export const useBlogs = (category?: string, tag?: string) => {
+export const useBlogs = (category?: string, tag?: string, search?: string) => {
   return useQuery({
-    queryKey: ['blogs', { category, tag }],
-    queryFn: () => BlogAPI.getPosts(category, tag),
+    queryKey: ['blogs', { category, tag, search }],
+    queryFn: () => BlogAPI.getPosts(category, tag, search),
   });
 };
 

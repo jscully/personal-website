@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import * as Yup from 'yup';
 
 const ContactSection = styled.section`
   padding: 5rem 0;
@@ -17,7 +19,7 @@ const SectionTitle = styled.h2`
   position: relative;
   display: inline-block;
   
-  // &::after {
+  &::after {
     content: '';
     position: absolute;
     left: 50%;
@@ -93,11 +95,6 @@ const InfoContent = styled.div`
   }
 `;
 
-const ContactForm = styled.form`
-  display: flex;
-  flex-direction: column;
-`;
-
 const FormGroup = styled.div`
   margin-bottom: 1.5rem;
 `;
@@ -108,7 +105,7 @@ const Label = styled.label`
   font-weight: 500;
 `;
 
-const Input = styled.input`
+const StyledInput = styled.input`
   width: 100%;
   padding: 0.8rem;
   border: 1px solid #ddd;
@@ -121,9 +118,13 @@ const Input = styled.input`
     outline: none;
     border-color: ${({ theme }) => theme.colors.primary};
   }
+
+  &.error {
+    border-color: ${({ theme }) => theme.colors.secondary};
+  }
 `;
 
-const TextArea = styled.textarea`
+const StyledTextArea = styled.textarea`
   width: 100%;
   padding: 0.8rem;
   border: 1px solid #ddd;
@@ -138,6 +139,16 @@ const TextArea = styled.textarea`
     outline: none;
     border-color: ${({ theme }) => theme.colors.primary};
   }
+
+  &.error {
+    border-color: ${({ theme }) => theme.colors.secondary};
+  }
+`;
+
+const ErrorText = styled.div`
+  color: ${({ theme }) => theme.colors.secondary};
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
 `;
 
 const SubmitButton = styled.button`
@@ -164,49 +175,40 @@ const SubmitButton = styled.button`
   }
 `;
 
-interface FormData {
-  name: string;
-  email: string;
-  subject: string;
-  message: string;
-}
+const SuccessMessage = styled.div`
+  background-color: #d1fae5;
+  color: #065f46;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-top: 1rem;
+  font-weight: 500;
+`;
 
 const Contact: React.FC = () => {
-  const [formData, setFormData] = useState<FormData>({
+  const [submitted, setSubmitted] = useState(false);
+
+  const initialValues = {
     name: '',
     email: '',
     subject: '',
     message: '',
-  });
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitMessage, setSubmitMessage] = useState<string | null>(null);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+  const validationSchema = Yup.object({
+    name: Yup.string().required('Required'),
+    email: Yup.string().email('Invalid email address').required('Required'),
+    subject: Yup.string().required('Required'),
+    message: Yup.string().required('Required'),
+  });
 
+  const handleSubmit = async (values: typeof initialValues, { setSubmitting, resetForm }: any) => {
     // Simulate API call
-    setTimeout(() => {
-      // This is where you would normally send the data to your backend
-      console.log('Form submitted:', formData);
-      setSubmitMessage('Thanks for reaching out! I will get back to you soon.');
-      setFormData({
-        name: '',
-        email: '',
-        subject: '',
-        message: '',
-      });
-      setIsSubmitting(false);
-    }, 1500);
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    console.log('Form submitted:', values);
+    setSubmitted(true);
+    setSubmitting(false);
+    resetForm();
+    setTimeout(() => setSubmitted(false), 5000);
   };
 
   return (
@@ -277,62 +279,66 @@ const Contact: React.FC = () => {
           </InfoItem>
         </ContactInfo>
 
-        <ContactForm onSubmit={handleSubmit}>
-          <FormGroup>
-            <Label htmlFor="name">Name</Label>
-            <Input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-            />
-          </FormGroup>
+        <Formik
+          initialValues={initialValues}
+          validationSchema={validationSchema}
+          onSubmit={handleSubmit}
+        >
+          {({ isSubmitting, errors, touched }) => (
+            <Form style={{ display: 'flex', flexDirection: 'column' }}>
+              <FormGroup>
+                <Label htmlFor="name">Name</Label>
+                <Field
+                  name="name"
+                  as={StyledInput}
+                  className={errors.name && touched.name ? 'error' : ''}
+                />
+                <ErrorMessage name="name" component={ErrorText} />
+              </FormGroup>
 
-          <FormGroup>
-            <Label htmlFor="email">Email</Label>
-            <Input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-            />
-          </FormGroup>
+              <FormGroup>
+                <Label htmlFor="email">Email</Label>
+                <Field
+                  name="email"
+                  type="email"
+                  as={StyledInput}
+                  className={errors.email && touched.email ? 'error' : ''}
+                />
+                <ErrorMessage name="email" component={ErrorText} />
+              </FormGroup>
 
-          <FormGroup>
-            <Label htmlFor="subject">Subject</Label>
-            <Input
-              type="text"
-              id="subject"
-              name="subject"
-              value={formData.subject}
-              onChange={handleChange}
-              required
-            />
-          </FormGroup>
+              <FormGroup>
+                <Label htmlFor="subject">Subject</Label>
+                <Field
+                  name="subject"
+                  as={StyledInput}
+                  className={errors.subject && touched.subject ? 'error' : ''}
+                />
+                <ErrorMessage name="subject" component={ErrorText} />
+              </FormGroup>
 
-          <FormGroup>
-            <Label htmlFor="message">Message</Label>
-            <TextArea
-              id="message"
-              name="message"
-              value={formData.message}
-              onChange={handleChange}
-              required
-            />
-          </FormGroup>
+              <FormGroup>
+                <Label htmlFor="message">Message</Label>
+                <Field
+                  name="message"
+                  as={StyledTextArea}
+                  className={errors.message && touched.message ? 'error' : ''}
+                />
+                <ErrorMessage name="message" component={ErrorText} />
+              </FormGroup>
 
-          <SubmitButton type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Sending...' : 'Send Message'}
-          </SubmitButton>
+              <SubmitButton type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Sending...' : 'Send Message'}
+              </SubmitButton>
 
-          {submitMessage && (
-            <p style={{ marginTop: '1rem', color: '#4CAF50' }}>{submitMessage}</p>
+              {submitted && (
+                <SuccessMessage>
+                  Thanks for reaching out! I will get back to you soon.
+                </SuccessMessage>
+              )}
+            </Form>
           )}
-        </ContactForm>
+        </Formik>
       </ContactContainer>
     </ContactSection>
   );

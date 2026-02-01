@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import BlogList from '../components/BlogList';
 import Pagination from '../components/common/Pagination';
+import SearchBar from '../components/common/SearchBar';
+import SEO from '../components/common/SEO';
 import { useBlogs, useCategories } from '../hooks/useBlogs';
 
 const BlogPageContainer = styled.div`
@@ -10,7 +12,7 @@ const BlogPageContainer = styled.div`
 
 const PageHeader = styled.div`
   text-align: center;
-  margin-bottom: 4rem;
+  margin-bottom: 2rem;
 `;
 
 const PageTitle = styled.h1`
@@ -44,11 +46,19 @@ const ErrorMessage = styled.div`
   color: ${({ theme }) => theme.colors.secondary};
 `;
 
+const NoResults = styled.div`
+  text-align: center;
+  padding: 3rem;
+  color: ${({ theme }) => theme.colors.gray};
+  font-size: 1.2rem;
+`;
+
 const BlogPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
   const postsPerPage = 6;
 
-  const { data: posts, isLoading: postsLoading, error: postsError } = useBlogs();
+  const { data: posts, isLoading: postsLoading, error: postsError } = useBlogs(undefined, undefined, searchQuery);
   const { data: categories } = useCategories();
   
   const loading = postsLoading;
@@ -65,27 +75,44 @@ const BlogPage: React.FC = () => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    setCurrentPage(1); // Reset to first page on search
+  };
   
   return (
     <BlogPageContainer>
+      <SEO 
+        title="Blog" 
+        description="Read my latest thoughts and stories about software engineering, web development, and more." 
+      />
       <PageHeader>
         <PageTitle>Blog</PageTitle>
         <PageDescription>
           Thoughts, stories and ideas about all aspects of Software Engineering
         </PageDescription>
       </PageHeader>
-      
+
       <ContentContainer>
+        <SearchBar onSearch={handleSearch} />
+
         {loading ? (
           <LoadingMessage>Loading blog posts...</LoadingMessage>) : error ? (
           <ErrorMessage>{error}</ErrorMessage>) : (
           <>
-            <BlogList posts={currentPosts} categories={categories?.map(c => c.name)} />
-            <Pagination 
-              currentPage={currentPage} 
-              totalPages={totalPages} 
-              onPageChange={handlePageChange} 
-            />
+            {postList.length > 0 ? (
+              <>
+                <BlogList posts={currentPosts} categories={categories?.map(c => c.name)} />
+                <Pagination 
+                  currentPage={currentPage} 
+                  totalPages={totalPages} 
+                  onPageChange={handlePageChange} 
+                />
+              </>
+            ) : (
+              <NoResults>No articles found matching your search.</NoResults>
+            )}
           </>
         )}
       </ContentContainer>

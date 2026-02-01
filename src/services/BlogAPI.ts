@@ -6,7 +6,7 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const BlogAPI = {
   
-  async getPosts(category?: string, tag?: string): Promise<BlogPost[]> {
+  async getPosts(category?: string, tag?: string, search?: string): Promise<BlogPost[]> {
     let filteredPosts = [...blogPosts];
     
     if (category) {
@@ -18,6 +18,15 @@ export const BlogAPI = {
     if (tag) {
       filteredPosts = filteredPosts.filter(post => 
         post.tags.some(t => t.toLowerCase() === tag.toLowerCase())
+      );
+    }
+
+    if (search) {
+      const query = search.toLowerCase();
+      filteredPosts = filteredPosts.filter(post => 
+        post.title.toLowerCase().includes(query) || 
+        post.excerpt.toLowerCase().includes(query) ||
+        post.content.toLowerCase().includes(query)
       );
     }
     

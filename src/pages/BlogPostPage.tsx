@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import BlogDetail from '../components/BlogDetail';
+import SEO from '../components/common/SEO';
 import { useBlogPost } from '../hooks/useBlogs';
 import { getRelatedPosts } from '../data/blogPosts'; // Keeping this helper for now, or move to hook if API supports it
 
@@ -48,6 +49,12 @@ const BlogPostPage: React.FC = () => {
   
   return (
     <BlogPostPageContainer>
+      <SEO 
+        title={post.title} 
+        description={post.excerpt} 
+        ogType="article" 
+        ogImage={post.coverImage} 
+      />
       <ContentContainer>
         <BlogDetail post={post} relatedPosts={relatedPosts} />
       </ContentContainer>

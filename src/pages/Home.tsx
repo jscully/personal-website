@@ -9,6 +9,7 @@ import BlogList from '../components/BlogList';
 import { blogPosts } from '../data/blogPosts';
 import PageContainer from '../components/common/PageContainer';
 import Button from '../components/common/Button';
+import SEO from '../components/common/SEO';
 
 const FeaturedSection = styled.section`
   padding: 5rem 0;
@@ -49,6 +50,10 @@ const Home: React.FC = () => {
 
   return (
     <>
+      <SEO 
+        title="Home" 
+        description="Software & Strategy Hobbiest. Portfolio and blog of Joe Scully." 
+      />
       <Hero 
         name="Joe Scully"
         tagline="Software & Strategy Hobbiest"

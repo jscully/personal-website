@@ -12,12 +12,12 @@
 > Reference: 02_ui_requirements.md (Blog Section)
 
 ### 1.1 Search Component
-- [ ] Create `SearchBar` component with debounce.
-- [ ] Implement `BlogSearch` page or modal.
-- [ ] Display search results with highlighting (if supported by API response).
+- [x] Create `SearchBar` component with debounce.
+- [x] Implement `BlogSearch` page or modal.
+- [x] Display search results with highlighting (if supported by API response).
 
 ### 1.2 Filtering
-- [ ] Implement Filter by Tag UI on Blog List.
+- [x] Implement Filter by Tag UI on Blog List.
 
 ---
 
@@ -25,9 +25,9 @@
 > Reference: 02_ui_requirements.md (Contact Page)
 
 ### 2.1 Form Implementation
-- [ ] Update `ContactPage` with `Formik` and `Yup`.
-- [ ] Integrate `POST /api/contact` endpoint.
-- [ ] Show Success/Error notifications (Toast messages).
+- [x] Update `ContactPage` with `Formik` and `Yup`.
+- [x] Integrate `POST /api/contact` endpoint.
+- [x] Show Success/Error notifications (Toast messages).
 
 ---
 
@@ -35,17 +35,17 @@
 > Reference: 03_testing_performance.md
 
 ### 3.1 SEO & Meta Tags
-- [ ] Implement `React Helmet` (or similar) for dynamic `<title>` and `<meta>` tags.
-- [ ] Ensure OpenGraph tags are populated for Blog Posts.
+- [x] Implement `React Helmet` (or similar) for dynamic `<title>` and `<meta>` tags.
+- [x] Ensure OpenGraph tags are populated for Blog Posts.
 
 ### 3.2 Performance
-- [ ] Implement Lazy Loading for images (`loading="lazy"`).
-- [ ] Verify Code Splitting (Routes are lazy loaded).
-- [ ] Run Lighthouse audit and fix critical issues.
+- [x] Implement Lazy Loading for images (`loading="lazy"`).
+- [x] Verify Code Splitting (Routes are lazy loaded).
+- [x] Run Lighthouse audit and fix critical issues.
 
 ---
 
 ## 4. Phase 3 Verification
-- [ ] Submit Contact Form and verify API call.
-- [ ] Search for a blog post and verify results.
-- [ ] Check Lighthouse score is > 90 for Performance and SEO.
+- [x] Submit Contact Form and verify API call.
+- [x] Search for a blog post and verify results.
+- [x] Check Lighthouse score is > 90 for Performance and SEO.
