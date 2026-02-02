@@ -26,6 +26,15 @@ export const useBlogPost = (slug: string) => {
   });
 };
 
+export const useAdminBlogPost = (id: string) => {
+  return useQuery({
+    queryKey: ['admin-blog', id],
+    queryFn: () => BlogAPI.getAdminPost(id),
+    enabled: !!id,
+    staleTime: 0, // Ensure we always get the latest state including drafts
+  });
+};
+
 export const useCategories = () => {
   return useQuery({
     queryKey: ['categories'],

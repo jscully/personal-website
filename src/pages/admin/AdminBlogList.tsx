@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { useAdminBlogs } from '../../hooks/useBlogs';
 import { BlogAPI } from '../../services/BlogAPI';
 import Button from '../../components/common/Button';
-import Card from '../../components/common/Card';
 import LoadingIndicator from '../../components/common/LoadingIndicator';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
+import Toast, { ToastType } from '../../components/common/Toast';
 
 const Header = styled.div`
   display: flex;
@@ -52,30 +52,60 @@ const ActionButtons = styled.div`
   gap: 0.5rem;
 `;
 
+const EmptyState = styled.div`
+  text-align: center;
+  padding: 3rem;
+  color: ${({ theme }) => theme.colors.gray};
+  background: white;
+  border-radius: 8px;
+  box-shadow: ${({ theme }) => theme.shadows.small};
+`;
+
 const AdminBlogList: React.FC = () => {
   const { data: posts, isLoading, error, refetch } = useAdminBlogs();
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: ToastType; isVisible: boolean }>({
+    message: '',
+    type: 'info',
+    isVisible: false,
+  });
+
+  useEffect(() => {
+    if (error) {
+      setToast({ 
+        message: 'Failed to load blog posts. Please check your connection or backend.', 
+        type: 'error', 
+        isVisible: true 
+      });
+    }
+  }, [error]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
     setIsDeleting(true);
     try {
       await BlogAPI.deletePost(deleteId);
+      setToast({ message: 'Post deleted successfully', type: 'success', isVisible: true });
       refetch();
       setDeleteId(null);
     } catch (err) {
-      alert('Failed to delete post');
+      setToast({ message: 'Failed to delete post', type: 'error', isVisible: true });
     } finally {
       setIsDeleting(false);
     }
   };
 
   if (isLoading) return <LoadingIndicator />;
-  if (error) return <div>Error loading posts.</div>;
 
   return (
     <div>
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        onClose={() => setToast({ ...toast, isVisible: false })}
+      />
       <Header>
         <h1>Blog Management</h1>
         <Link to="/admin/blogs/new">
@@ -83,42 +113,49 @@ const AdminBlogList: React.FC = () => {
         </Link>
       </Header>
 
-      <Table>
-        <thead>
-          <tr>
-            <Th>Title</Th>
-            <Th>Status</Th>
-            <Th>Date</Th>
-            <Th>Actions</Th>
-          </tr>
-        </thead>
-        <tbody>
-          {posts?.map((post) => (
-            <tr key={post.id}>
-              <Td>{post.title}</Td>
-              <Td>
-                <StatusBadge status={post.status}>{post.status}</StatusBadge>
-              </Td>
-              <Td>{post.publishDate ? new Date(post.publishDate).toLocaleDateString() : 'N/A'}</Td>
-              <Td>
-                <ActionButtons>
-                  <Link to={`/admin/blogs/edit/${post.slug}`}>
-                    <Button variant="outline" size="small">Edit</Button>
-                  </Link>
-                  <Button 
-                    variant="outline" 
-                    size="small" 
-                    style={{ color: 'red', borderColor: 'red' }}
-                    onClick={() => setDeleteId(post.id)}
-                  >
-                    Delete
-                  </Button>
-                </ActionButtons>
-              </Td>
+      {(!posts || posts.length === 0) ? (
+        <EmptyState>
+          <h3>No posts found</h3>
+          <p>Get started by creating your first blog post.</p>
+        </EmptyState>
+      ) : (
+        <Table>
+          <thead>
+            <tr>
+              <Th>Title</Th>
+              <Th>Status</Th>
+              <Th>Date</Th>
+              <Th>Actions</Th>
             </tr>
-          ))}
-        </tbody>
-      </Table>
+          </thead>
+          <tbody>
+            {posts.map((post) => (
+              <tr key={post.id}>
+                <Td>{post.title}</Td>
+                <Td>
+                  <StatusBadge status={post.status}>{post.status}</StatusBadge>
+                </Td>
+                <Td>{post.publishDate ? new Date(post.publishDate).toLocaleDateString() : 'N/A'}</Td>
+                <Td>
+                  <ActionButtons>
+                    <Link to={`/admin/blogs/edit/${post.id}`}>
+                      <Button variant="outline" size="small">Edit</Button>
+                    </Link>
+                    <Button 
+                      variant="outline" 
+                      size="small" 
+                      style={{ color: 'red', borderColor: 'red' }}
+                      onClick={() => setDeleteId(post.id)}
+                    >
+                      Delete
+                    </Button>
+                  </ActionButtons>
+                </Td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      )}
 
       <ConfirmDialog
         isOpen={!!deleteId}

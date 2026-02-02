@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { BlogAPI } from '../../services/BlogAPI';
-import { useBlogPost } from '../../hooks/useBlogs';
+import { useAdminBlogPost } from '../../hooks/useBlogs';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import Input, { Label, InputGroup, TextArea } from '../../components/common/Input';
@@ -35,9 +35,9 @@ const ErrorText = styled.div`
 `;
 
 const BlogEditorPage: React.FC = () => {
-  const { slug } = useParams<{ slug: string }>();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const isEditing = !!slug;
+  const isEditing = !!id;
   
   const [toast, setToast] = useState<{ message: string; type: ToastType; isVisible: boolean }>({
     message: '',
@@ -45,7 +45,7 @@ const BlogEditorPage: React.FC = () => {
     isVisible: false,
   });
 
-  const { data: post, isLoading } = useBlogPost(slug || '');
+  const { data: post, isLoading } = useAdminBlogPost(id || '');
 
   const showToast = (message: string, type: ToastType = 'info') => {
     setToast({ message, type, isVisible: true });
