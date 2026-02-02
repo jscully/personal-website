@@ -4,14 +4,14 @@ import { BlogPost, BlogPostDTO, TagDTO } from '../types/blog';
 // Helper to map API DTO to Frontend Model
 const mapPostToFrontend = (dto: BlogPostDTO): BlogPost => ({
   id: dto.id,
-  title: dto.title,
-  slug: dto.slug,
+  title: dto.title || '',
+  slug: dto.slug || '',
   excerpt: dto.excerpt || '',
-  content: dto.content,
+  content: dto.content || '',
   coverImage: dto.featured_image || '/assets/images/blog/default.jpg',
   publishDate: dto.publication_dt || '',
   readTime: dto.reading_time || 5,
-  tags: dto.tags.map(t => t.name),
+  tags: (dto.tags || []).map(t => t.name),
   categories: [], // API doesn't support categories distinct from tags yet
   author: {
     name: 'Joe Scully', // Hardcoded as API doesn't return author yet
