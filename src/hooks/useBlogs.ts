@@ -13,6 +13,8 @@ export const useAdminBlogs = () => {
   return useQuery({
     queryKey: ['admin-blogs'],
     queryFn: () => BlogAPI.getAdminPosts(),
+    staleTime: 0,
+    refetchOnMount: true,
   });
 };
 

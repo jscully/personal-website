@@ -138,7 +138,8 @@ export const BlogAPI = {
       tag_ids: tagIds || [],
       status: postData.status || 'draft',
       reading_time: postData.readTime || null,
-      seo_description: postData.seo_description || null
+      seo_description: postData.seo_description || null,
+      publication_dt: postData.publishDate || (postData.status === 'published' ? new Date().toISOString() : null)
     };
 
     try {
