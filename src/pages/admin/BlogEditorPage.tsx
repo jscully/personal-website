@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
@@ -8,8 +8,8 @@ import { useBlogPost } from '../../hooks/useBlogs';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import Input, { Label, InputGroup, TextArea } from '../../components/common/Input';
-import PageContainer from '../../components/common/PageContainer';
 import LoadingIndicator from '../../components/common/LoadingIndicator';
+import Toast, { ToastType } from '../../components/common/Toast';
 
 const EditorHeader = styled.div`
   display: flex;
@@ -38,8 +38,18 @@ const BlogEditorPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const isEditing = !!slug;
+  
+  const [toast, setToast] = useState<{ message: string; type: ToastType; isVisible: boolean }>({
+    message: '',
+    type: 'info',
+    isVisible: false,
+  });
 
   const { data: post, isLoading } = useBlogPost(slug || '');
+
+  const showToast = (message: string, type: ToastType = 'info') => {
+    setToast({ message, type, isVisible: true });
+  };
 
   const initialValues = {
     title: post?.title || '',
@@ -48,8 +58,9 @@ const BlogEditorPage: React.FC = () => {
     content: post?.content || '',
     categories: post?.categories?.join(', ') || '',
     tags: post?.tags?.join(', ') || '',
-    status: 'draft',
+    status: post?.status || 'draft',
     reading_time: post?.readTime || 5,
+    publishDate: post?.publishDate || null,
   };
 
   const validationSchema = Yup.object({
@@ -70,11 +81,16 @@ const BlogEditorPage: React.FC = () => {
          values.slug = `${values.slug}-${Date.now()}`;
       }
       await BlogAPI.savePost({ ...values, id: post?.id });
-      alert('Post saved successfully!');
-      navigate('/admin/blogs');
-    } catch (err) {
+      showToast('Post saved successfully!', 'success');
+      // Delay navigation slightly to let user see the success message
+      setTimeout(() => navigate('/admin/blogs'), 1000);
+    } catch (err: any) {
       console.error(err);
-      alert('Failed to save post');
+      if (err.response && err.response.status === 409) {
+        showToast('Failed to save: A post with this slug or ID already exists.', 'error');
+      } else {
+        showToast('Failed to save post. Please try again.', 'error');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -82,6 +98,12 @@ const BlogEditorPage: React.FC = () => {
 
   return (
     <div>
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        onClose={() => setToast({ ...toast, isVisible: false })}
+      />
       <EditorHeader>
         <h1>{isEditing ? 'Edit Post' : 'Create New Post'}</h1>
         <Button variant="outline" onClick={() => navigate('/admin/blogs')}>
@@ -128,7 +150,7 @@ const BlogEditorPage: React.FC = () => {
                 <Card style={{ marginBottom: '2rem' }}>
                   <h3>Publishing</h3>
                   <hr style={{ margin: '1rem 0' }} />
-                  <p>Status: <strong>Draft</strong></p>
+                  <p style={{ textTransform: 'capitalize' }}>Status: <strong>{values.status}</strong></p>
                   <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     <Button type="submit" disabled={isSubmitting}>
                       {isSubmitting ? 'Saving...' : 'Save Draft'}

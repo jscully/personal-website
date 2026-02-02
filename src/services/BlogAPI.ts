@@ -19,7 +19,7 @@ const mapPostToFrontend = (dto: BlogPostDTO): BlogPost => ({
   },
   likes: 0,
   featured: false,
-  status: dto.status || (dto.publication_dt ? 'published' : 'draft')
+  status: dto.status ? dto.status.toLowerCase() : 'draft'
 });
 
 export const BlogAPI = {
@@ -61,14 +61,9 @@ export const BlogAPI = {
       page_size: 50,
     };
 
-    try {
-      const response = await api.get('admin/blogs/', { params });
-      const items: BlogPostDTO[] = response.data.items;
-      return items.map(mapPostToFrontend);
-    } catch (error) {
-      console.error("Failed to fetch admin posts", error);
-      return [];
-    }
+    const response = await api.get('admin/blogs/', { params });
+    const items: BlogPostDTO[] = response.data.items;
+    return items.map(mapPostToFrontend);
   },
 
   async deletePost(blogId: string): Promise<boolean> {
