@@ -138,7 +138,7 @@ const AdminBlogList: React.FC = () => {
                 <Td>{post.publishDate ? new Date(post.publishDate).toLocaleDateString() : 'N/A'}</Td>
                 <Td>
                   <ActionButtons>
-                    <Link to={`/admin/blogs/edit/${post.slug}`}>
+                    <Link to={`/admin/blogs/edit/${post.id}`}>
                       <Button variant="outline" size="small">Edit</Button>
                     </Link>
                     <Button 
