@@ -85,16 +85,6 @@ export const BlogAPI = {
       return null;
     }
   },
-
-  async getAdminPost(id: string): Promise<BlogPost | null> {
-    try {
-      const response = await api.get(`admin/blogs/${id}/`);
-      return mapPostToFrontend(response.data);
-    } catch (error) {
-      console.error(`Failed to fetch admin post ${id}`, error);
-      return null;
-    }
-  },
   
   async getCategories(): Promise<any[]> {
     // API doesn't have categories, only tags. Return empty or mock.

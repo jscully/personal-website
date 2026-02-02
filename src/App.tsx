@@ -72,7 +72,7 @@ const App: React.FC = () => {
               <Route path="dashboard" element={<DashboardPage />} />
               <Route path="blogs" element={<AdminBlogList />} />
               <Route path="blogs/new" element={<BlogEditorPage />} />
-              <Route path="blogs/edit/:id" element={<BlogEditorPage />} />
+              <Route path="blogs/edit/:slug" element={<BlogEditorPage />} />
               <Route path="tags" element={<TagManagementPage />} />
               <Route path="analytics" element={<div>Analytics Coming Soon</div>} />
             </Route>
