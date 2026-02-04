@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { useTags } from '../../hooks/useBlogs';
 import Button from '../../components/common/Button';
@@ -46,7 +46,9 @@ const TagManagementPage: React.FC = () => {
           <TagCard key={tag.id}>
             <TagChip label={tag.name} clickable={false} />
             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-              <Button variant="outline" size="small">Edit</Button>
+              <Link to={`/admin/tags/edit/${tag.id}`}>
+                <Button variant="outline" size="small">Edit</Button>
+              </Link>
               <Button variant="outline" size="small" style={{ color: 'red', borderColor: 'red' }}>Delete</Button>
             </div>
           </TagCard>

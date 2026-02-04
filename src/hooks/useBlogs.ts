@@ -48,3 +48,12 @@ export const useTags = () => {
     queryFn: () => BlogAPI.getTags(),
   });
 };
+
+export const useTag = (id: string) => {
+  return useQuery({
+    queryKey: ['tag', id],
+    queryFn: () => BlogAPI.getTag(id),
+    enabled: !!id,
+    staleTime: 0,
+  });
+};

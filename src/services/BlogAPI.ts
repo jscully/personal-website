@@ -181,5 +181,20 @@ export const BlogAPI = {
   async createTag(tagData: Omit<TagDTO, 'id'>): Promise<TagDTO> {
     const response = await api.post('admin/tags/', tagData);
     return response.data;
+  },
+
+  async getTag(id: string): Promise<TagDTO | null> {
+    try {
+      const response = await api.get(`admin/tags/${id}/`);
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to fetch tag ${id}`, error);
+      return null;
+    }
+  },
+
+  async updateTag(id: string, tagData: Omit<TagDTO, 'id'>): Promise<TagDTO> {
+    const response = await api.put(`admin/tags/${id}/`, tagData);
+    return response.data;
   }
 };

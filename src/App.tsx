@@ -27,7 +27,7 @@ const DashboardPage = lazy(() => import('./pages/admin/DashboardPage'));
 const AdminBlogList = lazy(() => import('./pages/admin/AdminBlogList'));
 const BlogEditorPage = lazy(() => import('./pages/admin/BlogEditorPage'));
 const TagManagementPage = lazy(() => import('./pages/admin/TagManagementPage'));
-const AddTagPage = lazy(() => import('./pages/admin/AddTagPage'));
+const TagEditorPage = lazy(() => import('./pages/admin/TagEditorPage'));
 
 const PublicLayout = () => (
   <>
@@ -75,7 +75,8 @@ const App: React.FC = () => {
               <Route path="blogs/new" element={<BlogEditorPage />} />
               <Route path="blogs/edit/:id" element={<BlogEditorPage />} />
               <Route path="tags" element={<TagManagementPage />} />
-              <Route path="tags/new" element={<AddTagPage />} />
+              <Route path="tags/new" element={<TagEditorPage />} />
+              <Route path="tags/edit/:id" element={<TagEditorPage />} />
               <Route path="analytics" element={<div>Analytics Coming Soon</div>} />
             </Route>
           </Routes>

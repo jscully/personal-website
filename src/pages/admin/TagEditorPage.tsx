@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
+import { useQueryClient } from '@tanstack/react-query';
 import { BlogAPI } from '../../services/BlogAPI';
+import { useTag } from '../../hooks/useBlogs';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import Input, { Label, InputGroup, TextArea } from '../../components/common/Input';
 import Toast, { ToastType } from '../../components/common/Toast';
+import LoadingIndicator from '../../components/common/LoadingIndicator';
 
 const Header = styled.div`
   display: flex;
@@ -45,8 +48,14 @@ const validationSchema = Yup.object({
   color_code: Yup.string().matches(/^#[0-9A-Fa-f]{3,6}$/, 'Invalid hex color'),
 });
 
-const AddTagPage: React.FC = () => {
+const TagEditorPage: React.FC = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { id } = useParams<{ id: string }>();
+  const isEditing = !!id;
+
+  const { data: tag, isLoading } = useTag(id || '');
+
   const [toast, setToast] = useState<{ message: string; type: ToastType; isVisible: boolean }>({
     message: '',
     type: 'info',
@@ -58,27 +67,42 @@ const AddTagPage: React.FC = () => {
   };
 
   const initialValues = {
-    name: '',
-    description: '',
-    color_code: '#5A5d80',
+    name: tag?.name || '',
+    description: tag?.description || '',
+    color_code: tag?.color_code || '#5A5d80',
   };
 
   const handleSubmit = async (values: typeof initialValues, { setSubmitting }: any) => {
     try {
-      await BlogAPI.createTag({
-        name: values.name,
-        description: values.description || undefined,
-        color_code: values.color_code,
-      });
-      showToast('Tag created successfully!', 'success');
+      if (isEditing && id) {
+        await BlogAPI.updateTag(id, {
+          name: values.name,
+          description: values.description || undefined,
+          color_code: values.color_code,
+        });
+        showToast('Tag updated successfully!', 'success');
+      } else {
+        await BlogAPI.createTag({
+          name: values.name,
+          description: values.description || undefined,
+          color_code: values.color_code,
+        });
+        showToast('Tag created successfully!', 'success');
+      }
+      // Invalidate the tags cache so the list refreshes with updated data
+      await queryClient.invalidateQueries({ queryKey: ['tags'] });
       setTimeout(() => navigate('/admin/tags'), 1000);
     } catch (err: any) {
       console.error(err);
-      showToast('Failed to create tag. Please try again.', 'error');
+      showToast(`Failed to ${isEditing ? 'update' : 'create'} tag. Please try again.`, 'error');
     } finally {
       setSubmitting(false);
     }
   };
+
+  if (isEditing && isLoading) {
+    return <LoadingIndicator />;
+  }
 
   return (
     <div>
@@ -89,7 +113,7 @@ const AddTagPage: React.FC = () => {
         onClose={() => setToast({ ...toast, isVisible: false })}
       />
       <Header>
-        <h1>Add New Tag</h1>
+        <h1>{isEditing ? 'Edit Tag' : 'Add New Tag'}</h1>
         <Button variant="outline" onClick={() => navigate('/admin/tags')}>
           Cancel
         </Button>
@@ -100,6 +124,7 @@ const AddTagPage: React.FC = () => {
           initialValues={initialValues}
           validationSchema={validationSchema}
           onSubmit={handleSubmit}
+          enableReinitialize
         >
           {({ isSubmitting, values }) => (
             <Form>
@@ -125,7 +150,9 @@ const AddTagPage: React.FC = () => {
               </InputGroup>
 
               <Button type="submit" disabled={isSubmitting} style={{ marginTop: '1.5rem' }}>
-                {isSubmitting ? 'Creating...' : 'Create Tag'}
+                {isSubmitting
+                  ? (isEditing ? 'Updating...' : 'Creating...')
+                  : (isEditing ? 'Update Tag' : 'Create Tag')}
               </Button>
             </Form>
           )}
@@ -135,4 +162,4 @@ const AddTagPage: React.FC = () => {
   );
 };
 
-export default AddTagPage;
+export default TagEditorPage;
