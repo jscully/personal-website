@@ -10,6 +10,7 @@ import Card from '../../components/common/Card';
 import Input, { Label, InputGroup, TextArea } from '../../components/common/Input';
 import LoadingIndicator from '../../components/common/LoadingIndicator';
 import Toast, { ToastType } from '../../components/common/Toast';
+import BlogPreviewModal from '../../components/admin/BlogPreviewModal';
 
 const EditorHeader = styled.div`
   display: flex;
@@ -38,12 +39,13 @@ const BlogEditorPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isEditing = !!id;
-  
+
   const [toast, setToast] = useState<{ message: string; type: ToastType; isVisible: boolean }>({
     message: '',
     type: 'info',
     isVisible: false,
   });
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const { data: post, isLoading } = useAdminBlogPost(id || '');
 
@@ -152,6 +154,9 @@ const BlogEditorPage: React.FC = () => {
                   <hr style={{ margin: '1rem 0' }} />
                   <p style={{ textTransform: 'capitalize' }}>Status: <strong>{values.status}</strong></p>
                   <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <Button type="button" variant="outline" onClick={() => setIsPreviewOpen(true)}>
+                      Preview
+                    </Button>
                     <Button type="submit" disabled={isSubmitting}>
                       {isSubmitting ? 'Saving...' : 'Save Draft'}
                     </Button>
@@ -160,6 +165,12 @@ const BlogEditorPage: React.FC = () => {
                     </Button>
                   </div>
                 </Card>
+
+                <BlogPreviewModal
+                  isOpen={isPreviewOpen}
+                  onClose={() => setIsPreviewOpen(false)}
+                  formValues={values}
+                />
 
                 <Card>
                   <h3>Metadata</h3>
