@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
+import { useQueryClient } from '@tanstack/react-query';
 import { BlogAPI } from '../../services/BlogAPI';
 import { useAdminBlogPost } from '../../hooks/useBlogs';
 import Button from '../../components/common/Button';
@@ -38,6 +39,7 @@ const ErrorText = styled.div`
 const BlogEditorPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const isEditing = !!id;
 
   const [toast, setToast] = useState<{ message: string; type: ToastType; isVisible: boolean }>({
@@ -83,6 +85,12 @@ const BlogEditorPage: React.FC = () => {
          values.slug = `${values.slug}-${Date.now()}`;
       }
       await BlogAPI.savePost({ ...values, id: post?.id });
+
+      // Invalidate caches so public pages show updated data
+      await queryClient.invalidateQueries({ queryKey: ['blogs'] });
+      await queryClient.invalidateQueries({ queryKey: ['blog', values.slug] });
+      await queryClient.invalidateQueries({ queryKey: ['admin-blogs'] });
+
       showToast('Post saved successfully!', 'success');
       // Delay navigation slightly to let user see the success message
       setTimeout(() => navigate('/admin/blogs'), 1000);
