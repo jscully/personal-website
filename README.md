@@ -2,6 +2,20 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## Setup
+
+1. Install dependencies:
+   ```bash
+   npm install --legacy-peer-deps
+   ```
+
+2. Start the development server:
+   ```bash
+   npm start
+   ```
+
+> **Note:** The `--legacy-peer-deps` flag is required due to peer dependency conflicts with React 19.
+
 ## Available Scripts
 
 In the project directory, you can run:
