@@ -108,4 +108,36 @@ describe('BlogAPI', () => {
       expect(result).toEqual(newTag);
     });
   });
+
+  describe('deleteTag', () => {
+    it('deletes a tag successfully', async () => {
+      mockApi.delete.mockResolvedValue({});
+
+      const result = await BlogAPI.deleteTag('tag-123');
+
+      expect(mockApi.delete).toHaveBeenCalledWith('admin/tags/tag-123/');
+      expect(result).toBe(true);
+    });
+
+    it('returns false when delete fails', async () => {
+      mockApi.delete.mockRejectedValue(new Error('Delete failed'));
+
+      const result = await BlogAPI.deleteTag('tag-123');
+
+      expect(result).toBe(false);
+    });
+
+    it('logs error when delete fails', async () => {
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      mockApi.delete.mockRejectedValue(new Error('Delete failed'));
+
+      await BlogAPI.deleteTag('tag-123');
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Failed to delete tag tag-123',
+        expect.any(Error)
+      );
+      consoleSpy.mockRestore();
+    });
+  });
 });

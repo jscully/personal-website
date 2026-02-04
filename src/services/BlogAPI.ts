@@ -196,5 +196,15 @@ export const BlogAPI = {
   async updateTag(id: string, tagData: Omit<TagDTO, 'id'>): Promise<TagDTO> {
     const response = await api.put(`admin/tags/${id}/`, tagData);
     return response.data;
+  },
+
+  async deleteTag(id: string): Promise<boolean> {
+    try {
+      await api.delete(`admin/tags/${id}/`);
+      return true;
+    } catch (error) {
+      console.error(`Failed to delete tag ${id}`, error);
+      return false;
+    }
   }
 };
