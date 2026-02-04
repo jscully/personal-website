@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { useTags } from '../../hooks/useBlogs';
 import Button from '../../components/common/Button';
@@ -27,6 +28,7 @@ const TagCard = styled(Card)`
 `;
 
 const TagManagementPage: React.FC = () => {
+  const navigate = useNavigate();
   const { data: tags, isLoading, error } = useTags();
 
   if (isLoading) return <LoadingIndicator />;
@@ -36,7 +38,7 @@ const TagManagementPage: React.FC = () => {
     <div>
       <Header>
         <h1>Tag Management</h1>
-        <Button>Add New Tag</Button>
+        <Button onClick={() => navigate('/admin/tags/new')}>Add New Tag</Button>
       </Header>
 
       <TagGrid>

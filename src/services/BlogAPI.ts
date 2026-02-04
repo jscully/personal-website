@@ -176,5 +176,10 @@ export const BlogAPI = {
   async getRelatedPosts(postId: string, limit: number = 3): Promise<BlogPost[]> {
     // Mock implementation for now, or fetch all and filter
     return [];
+  },
+
+  async createTag(tagData: Omit<TagDTO, 'id'>): Promise<TagDTO> {
+    const response = await api.post('admin/tags/', tagData);
+    return response.data;
   }
 };
